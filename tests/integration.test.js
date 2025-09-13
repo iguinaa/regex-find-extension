@@ -131,6 +131,42 @@ function calculateTotal(price, tax) {
         expect(text).toMatch(/\/ Imp [^VM]/);
       });
     });
+
+    test('Finding words with boundary constraints', () => {
+      regexFind.show();
+      regexFind.search('function\\b');
+      
+      // Should find "function" as complete words, not parts of other words
+      expect(regexFind.currentMatches.length).toBeGreaterThan(0);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent.toLowerCase()).toBe('function');
+      });
+    });
+
+    test('Finding patterns at end of lines', () => {
+      regexFind.show();
+      regexFind.search('\\.$');
+      
+      // Should find periods at end of lines
+      expect(regexFind.currentMatches.length).toBeGreaterThan(0);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent).toBe('.');
+      });
+    });
+
+    test('Finding words followed by specific punctuation', () => {
+      regexFind.show();
+      regexFind.search('\\w+[.,!]');
+      
+      // Should find words followed by punctuation
+      expect(regexFind.currentMatches.length).toBeGreaterThan(0);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent).toMatch(/\w+[.,!]/);
+      });
+    });
   });
 
   describe('User Interaction Flow', () => {

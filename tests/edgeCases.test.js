@@ -98,6 +98,57 @@ describe('RegexFind Edge Cases and Performance', () => {
       // Should find non-overlapping matches
       expect(regexFind.currentMatches.length).toBe(2);
     });
+
+    test('should handle word boundaries with special characters', () => {
+      document.body.innerHTML = `
+        <div>test-case test_case test.case test123 123test</div>
+      `;
+
+      regexFind.show();
+      regexFind.search('test\\b');
+      
+      // Should match "test" at word boundaries
+      expect(regexFind.currentMatches.length).toBeGreaterThan(0);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent).toBe('test');
+      });
+    });
+
+    test('should handle line endings with different line break types', () => {
+      document.body.innerHTML = `
+        <div>
+          <p>Line one end</p>
+          <p>Line two end</p>
+          <span>Inline end</span>
+        </div>
+      `;
+
+      regexFind.show();
+      regexFind.search('end$');
+      
+      // Should find "end" at end of each line/element
+      expect(regexFind.currentMatches.length).toBe(3);
+    });
+
+    test('should handle complex character class patterns', () => {
+      document.body.innerHTML = `
+        <div>
+          <p>Price: $19.99, discounted to $15.50!</p>
+          <p>Total cost: $100.00.</p>
+        </div>
+      `;
+
+      regexFind.show();
+      regexFind.search('\\$\\d+\\.\\d{2}[,!.]');
+      
+      // Should find prices followed by punctuation
+      expect(regexFind.currentMatches.length).toBe(3);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent).toMatch(/\$\d+\.\d{2}[,!.]/);
+      });
+    });
   });
 
   describe('Error Handling', () => {

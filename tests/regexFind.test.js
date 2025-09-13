@@ -208,7 +208,6 @@ describe('RegexFind Extension', () => {
       // The match should be "Ipsum"
       if (regexFind.currentMatches.length > 0) {
         const matchText = regexFind.currentMatches[0].textContent;
-        console.log('Actual match found:', matchText);
         expect(matchText.toLowerCase()).toMatch(/^ip/);
       }
     });
@@ -217,6 +216,82 @@ describe('RegexFind Extension', () => {
       regexFind.search('\\$\\d+\\.\\d{2}');
       
       expect(regexFind.currentMatches.length).toBe(3); // $19.99, $5.00, $100.50
+    });
+
+    test('should handle word boundary patterns', () => {
+      // Add test content with word boundaries
+      document.body.innerHTML = `
+        <div>
+          <p>test testing tester</p>
+          <p>contest protest</p>
+          <p>Test case</p>
+        </div>
+      `;
+
+      regexFind.search('test\\b');
+      
+      // Should match "test" at word boundaries: "test" (standalone), "contest" (end), "protest" (end), "Test" (standalone)
+      expect(regexFind.currentMatches.length).toBe(4);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent.toLowerCase()).toBe('test');
+      });
+    });
+
+    test('should handle end of line patterns', () => {
+      document.body.innerHTML = `
+        <div>
+          <p>Line ending with test</p>
+          <p>test in middle of line</p>
+          <p>Another test here</p>
+        </div>
+      `;
+
+      regexFind.search('test$');
+      
+      // Should only match "test" at end of lines
+      expect(regexFind.currentMatches.length).toBe(1);
+      expect(regexFind.currentMatches[0].textContent).toBe('test');
+    });
+
+    test('should handle character class endings', () => {
+      document.body.innerHTML = `
+        <div>
+          <p>Lorem Ipsum dolor</p>
+          <p>Lorem, sit amet</p>
+          <p>Lorem. consectetur</p>
+          <p>LoremTest without space</p>
+        </div>
+      `;
+
+      regexFind.search('Lorem[ .,]');
+      
+      // Should match "Lorem " "Lorem," "Lorem." but not "LoremTest"
+      expect(regexFind.currentMatches.length).toBe(3);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent).toMatch(/^Lorem[ .,]/);
+      });
+    });
+
+    test('should handle specific character endings', () => {
+      document.body.innerHTML = `
+        <div>
+          <p>function() call</p>
+          <p>function test</p>
+          <p>function. End</p>
+          <p>functional programming</p>
+        </div>
+      `;
+
+      regexFind.search('function[( .]');
+      
+      // Should match "function(" "function " "function." but not "functional"
+      expect(regexFind.currentMatches.length).toBe(3);
+      
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent).toMatch(/^function[( .]/);
+      });
     });
 
     test('should handle empty search', () => {

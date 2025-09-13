@@ -89,6 +89,12 @@ class RegexFind {
             <code>\\s</code> - Any whitespace (space, tab, newline)
           </div>
           <div class="example-section">
+            <strong>Ending matches:</strong><br>
+            <code>Lorem\\b</code> - "Lorem" at word boundary<br>
+            <code>test[ .]</code> - "test" + space or period<br>
+            <code>word$</code> - "word" at end of line
+          </div>
+          <div class="example-section">
             <strong>Numbers & digits:</strong><br>
             <code>\\d</code> - Any single digit<br>
             <code>\\d+</code> - One or more digits<br>
@@ -155,12 +161,6 @@ class RegexFind {
       // Smart pattern detection and suggestions
       let regexPattern = this.processPattern(pattern);
       
-      // Debug logging to help troubleshoot issues
-      console.log('Input pattern:', pattern);
-      console.log('Is simple wildcard?', this.isSimpleWildcard(pattern));
-      console.log('Contains regex chars?', this.containsRegexChars(pattern));
-      console.log('Final regex pattern:', regexPattern);
-      
       const regex = new RegExp(regexPattern, 'gi');
       this.findMatches(document.body, regex);
       this.updateResultInfo();
@@ -170,7 +170,6 @@ class RegexFind {
         this.highlightCurrentMatch();
       }
     } catch (e) {
-      console.error('Regex error:', e, 'Pattern:', pattern);
       this.showPatternSuggestion(pattern);
     }
   }

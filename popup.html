@@ -48,6 +48,11 @@
     \d+ → Any numbers<br>
     \$\d+ → Prices like $25<br><br>
     
+    <strong>Ending matches:</strong><br>
+    Lorem\b → "Lorem" at word end<br>
+    test[ .] → "test" + space or period<br>
+    word$ → "word" at line end<br><br>
+    
     <strong>Excluding chars:</strong><br>
     cat [^s] → "cat" not followed by "s"<br>
     / Imp [^VMB] → "/ Imp " + not V/M/B
