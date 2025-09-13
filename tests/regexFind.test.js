@@ -111,17 +111,17 @@ describe('RegexFind Extension', () => {
     });
 
     test('should handle simple wildcards for beginners', () => {
-      // Test * wildcard
+      // Test * wildcard (now constrains to single line)
       const starPattern = regexFind.processPattern('test*');
-      expect(starPattern).toBe('test.*');
+      expect(starPattern).toBe('test[^\\n]*');
       
-      // Test ? wildcard
+      // Test ? wildcard (now constrains to single line)
       const questionPattern = regexFind.processPattern('f?x');
-      expect(questionPattern).toBe('f.x');
+      expect(questionPattern).toBe('f[^\\n]x');
       
       // Test both wildcards
       const bothPattern = regexFind.processPattern('f*?ing');
-      expect(bothPattern).toBe('f.*.ing');
+      expect(bothPattern).toBe('f[^\\n]*[^\\n]ing');
     });
 
     test('should distinguish wildcards from complex regex', () => {
@@ -190,6 +190,27 @@ describe('RegexFind Extension', () => {
       regexFind.currentMatches.forEach(match => {
         expect(match.textContent.toLowerCase()).toMatch(/^test/);
       });
+    });
+
+    test('should handle Ip* pattern correctly with Lorem Ipsum text', () => {
+      // Clear previous content and add specific test case
+      document.body.innerHTML = `
+        <div id="lorem-test">
+          <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+        </div>
+      `;
+
+      regexFind.search('Ip*');
+      
+      // Should find exactly 1 match: "Ipsum" 
+      expect(regexFind.currentMatches.length).toBe(1);
+      
+      // The match should be "Ipsum"
+      if (regexFind.currentMatches.length > 0) {
+        const matchText = regexFind.currentMatches[0].textContent;
+        console.log('Actual match found:', matchText);
+        expect(matchText.toLowerCase()).toMatch(/^ip/);
+      }
     });
 
     test('should find price patterns', () => {

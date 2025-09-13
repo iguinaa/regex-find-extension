@@ -77,10 +77,16 @@ class RegexFind {
             <code>123</code> - Find "123"
           </div>
           <div class="example-section">
-            <strong>Wildcards (simple):</strong><br>
-            <code>test*</code> - "test" + anything after<br>
-            <code>*ing</code> - Anything + "ing"<br>
+            <strong>Wildcards (single line):</strong><br>
+            <code>test*</code> - "test" + anything on same line<br>
+            <code>*ing</code> - Anything + "ing" (same line)<br>
             <code>f?x</code> - "f" + any single char + "x"
+          </div>
+          <div class="example-section">
+            <strong>Cross-line matching:</strong><br>
+            <code>test.*</code> - "test" + anything (including newlines)<br>
+            <code>start.*end</code> - From "start" to "end" anywhere<br>
+            <code>\\s</code> - Any whitespace (space, tab, newline)
           </div>
           <div class="example-section">
             <strong>Numbers & digits:</strong><br>
@@ -148,6 +154,13 @@ class RegexFind {
     try {
       // Smart pattern detection and suggestions
       let regexPattern = this.processPattern(pattern);
+      
+      // Debug logging to help troubleshoot issues
+      console.log('Input pattern:', pattern);
+      console.log('Is simple wildcard?', this.isSimpleWildcard(pattern));
+      console.log('Contains regex chars?', this.containsRegexChars(pattern));
+      console.log('Final regex pattern:', regexPattern);
+      
       const regex = new RegExp(regexPattern, 'gi');
       this.findMatches(document.body, regex);
       this.updateResultInfo();
@@ -157,6 +170,7 @@ class RegexFind {
         this.highlightCurrentMatch();
       }
     } catch (e) {
+      console.error('Regex error:', e, 'Pattern:', pattern);
       this.showPatternSuggestion(pattern);
     }
   }
@@ -184,11 +198,15 @@ class RegexFind {
   }
 
   convertWildcardToRegex(pattern) {
-    // Convert simple wildcards to regex
-    // Escape everything except * and ?
+    // Convert simple wildcards to regex, but constrain to single lines
+    // Escape regex special characters except * and ?
     let escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
-    // Convert * to .* and ? to .
-    escaped = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
+    
+    // Convert wildcards with line boundary awareness:
+    // * becomes [^\n]* (anything except newlines)
+    // ? becomes [^\n] (any single character except newline)
+    escaped = escaped.replace(/\*/g, '[^\\n]*').replace(/\?/g, '[^\\n]');
+    
     return escaped;
   }
 
