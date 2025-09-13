@@ -1,0 +1,76 @@
+name: Test Regex Find Extension
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+    
+    - name: Run tests with coverage
+      run: npm run test:coverage
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Validate manifest
+      run: |
+        echo "Validating manifest.json..."
+        node -e "
+          const manifest = require('./manifest.json');
+          if (manifest.manifest_version !== 3) {
+            throw new Error('Must use Manifest V3');
+          }
+          console.log('✅ Manifest is valid');
+        "
+    
+    - name: Check file structure
+      run: |
+        echo "Checking required files..."
+        test -f manifest.json || exit 1
+        test -f content.js || exit 1
+        test -f styles.css || exit 1
+        test -f popup.html || exit 1
+        echo "✅ All required files present"
