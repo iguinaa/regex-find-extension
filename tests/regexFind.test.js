@@ -86,7 +86,10 @@ describe('RegexFind Extension', () => {
       expect(regexFind.containsRegexChars('hello world')).toBe(false);
       expect(regexFind.containsRegexChars('\\d+')).toBe(true);
       expect(regexFind.containsRegexChars('[abc]')).toBe(true);
-      expect(regexFind.containsRegexChars('test.*')).toBe(true);
+      expect(regexFind.containsRegexChars('(test|demo)')).toBe(true);
+      // Note: * and ? are now handled as simple wildcards, not regex chars
+      expect(regexFind.containsRegexChars('test*')).toBe(false);
+      expect(regexFind.containsRegexChars('test?')).toBe(false);
     });
 
     test('should escape plain text correctly', () => {
@@ -105,6 +108,31 @@ describe('RegexFind Extension', () => {
     test('should process regex patterns', () => {
       const processed = regexFind.processPattern('\\d+');
       expect(processed).toBe('\\d+');
+    });
+
+    test('should handle simple wildcards for beginners', () => {
+      // Test * wildcard
+      const starPattern = regexFind.processPattern('test*');
+      expect(starPattern).toBe('test.*');
+      
+      // Test ? wildcard
+      const questionPattern = regexFind.processPattern('f?x');
+      expect(questionPattern).toBe('f.x');
+      
+      // Test both wildcards
+      const bothPattern = regexFind.processPattern('f*?ing');
+      expect(bothPattern).toBe('f.*.ing');
+    });
+
+    test('should distinguish wildcards from complex regex', () => {
+      // Simple wildcard should be converted
+      expect(regexFind.isSimpleWildcard('test*')).toBe(true);
+      expect(regexFind.isSimpleWildcard('f?x')).toBe(true);
+      
+      // Complex regex should not be treated as simple wildcard
+      expect(regexFind.isSimpleWildcard('\\d+')).toBe(false);
+      expect(regexFind.isSimpleWildcard('[abc]')).toBe(false);
+      expect(regexFind.isSimpleWildcard('(test|demo)')).toBe(false);
     });
   });
 
@@ -150,6 +178,17 @@ describe('RegexFind Extension', () => {
       regexFind.currentMatches.forEach(match => {
         const text = match.textContent;
         expect(text).toMatch(/\/ Imp [^VMB]/);
+      });
+    });
+
+    test('should handle wildcard patterns for beginners', () => {
+      regexFind.search('test*');
+      
+      expect(regexFind.currentMatches.length).toBeGreaterThan(0);
+      
+      // Should match "test" at beginning (case insensitive due to 'gi' flags)
+      regexFind.currentMatches.forEach(match => {
+        expect(match.textContent.toLowerCase()).toMatch(/^test/);
       });
     });
 

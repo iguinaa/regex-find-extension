@@ -77,6 +77,12 @@ class RegexFind {
             <code>123</code> - Find "123"
           </div>
           <div class="example-section">
+            <strong>Wildcards (simple):</strong><br>
+            <code>test*</code> - "test" + anything after<br>
+            <code>*ing</code> - Anything + "ing"<br>
+            <code>f?x</code> - "f" + any single char + "x"
+          </div>
+          <div class="example-section">
             <strong>Numbers & digits:</strong><br>
             <code>\\d</code> - Any single digit<br>
             <code>\\d+</code> - One or more digits<br>
@@ -156,23 +162,39 @@ class RegexFind {
   }
 
   processPattern(pattern) {
-    // If it looks like plain text, escape it but allow simple wildcards
+    // Check if it looks like a simple wildcard pattern (contains * or ? but not complex regex)
+    if (this.isSimpleWildcard(pattern)) {
+      return this.convertWildcardToRegex(pattern);
+    }
+    
+    // If it looks like plain text, escape it
     if (!this.containsRegexChars(pattern)) {
       return this.escapeRegExp(pattern);
     }
 
-    // Auto-add newline boundary for intuitive behavior (unless anchors are used)
-    if (!pattern.includes('$') && !pattern.includes('^')) {
-      // For patterns that might cross lines, keep them contained to single lines
-      return pattern;
-    }
-
+    // Return as-is for full regex patterns
     return pattern;
   }
 
+  isSimpleWildcard(str) {
+    // Check if it contains wildcards but not complex regex syntax
+    const hasWildcards = /[*?]/.test(str);
+    const hasComplexRegex = /[\\^${}()|[\]]+/.test(str);
+    return hasWildcards && !hasComplexRegex;
+  }
+
+  convertWildcardToRegex(pattern) {
+    // Convert simple wildcards to regex
+    // Escape everything except * and ?
+    let escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+    // Convert * to .* and ? to .
+    escaped = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
+    return escaped;
+  }
+
   containsRegexChars(str) {
-    // Check if string contains regex special characters
-    return /[\\.*+?^${}()|[\]]/.test(str);
+    // Check if string contains regex special characters (excluding simple wildcards)
+    return /[\\^${}()|[\]]+/.test(str);
   }
 
   escapeRegExp(string) {
